@@ -5,4 +5,9 @@ const { getAllProducts, getSingleProduct } = require('../controllers/productsCon
 router.get('/', getAllProducts);
 router.get('/:id', getSingleProduct);
 
+router.post('/', createProduct);
+router.put('/:id', updateProduct);
+router.delete('/:id', deleteProduct);
+
+
 module.exports = router;

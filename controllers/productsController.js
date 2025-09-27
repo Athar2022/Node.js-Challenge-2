@@ -22,3 +22,31 @@ exports.getSingleProduct = (req, res) => {
   if (!product) return res.status(404).json({ message: 'Product not found' });
   res.json(product);
 };
+
+exports.createProduct = (req, res) => {
+  const { name, price, category } = req.body;
+  if (!name || price === undefined) return res.status(400).json({ message: 'name and price are required' });
+  const product = { id: nextId++, name, price: Number(price), category: category || 'general' };
+  products.push(product);
+  res.status(201).json(product);
+};
+
+exports.updateProduct = (req, res) => {
+  const id = Number(req.params.id);
+  const idx = products.findIndex(p => p.id === id);
+  if (idx === -1) return res.status(404).json({ message: 'Product not found' });
+  const { name, price, category } = req.body;
+  if (name !== undefined) products[idx].name = name;
+  if (price !== undefined) products[idx].price = Number(price);
+  if (category !== undefined) products[idx].category = category;
+  res.json(products[idx]);
+};
+
+exports.deleteProduct = (req, res) => {
+  const id = Number(req.params.id);
+  const idx = products.findIndex(p => p.id === id);
+  if (idx === -1) return res.status(404).json({ message: 'Product not found' });
+  const removed = products.splice(idx, 1)[0];
+  res.json({ message: 'Product deleted', product: removed });
+};
+
