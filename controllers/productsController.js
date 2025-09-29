@@ -1,3 +1,5 @@
+const Product = require('../models/productModel');
+
 let products = [
   { id: 1, name: 'Apple iPhone 14 Pro Max', category: 'phones', price: 799 },
   { id: 2, name: 'Samsung Galaxy S23', category: 'phones', price: 699 },
@@ -6,47 +8,52 @@ let products = [
 
 let nextId = 4;
 
-exports.getAllProducts = (req, res) => {
-  const { name, category, minPrice, maxPrice } = req.query;
-  let result = products.slice();
-  if (name) result = result.filter(p => p.name.toLowerCase().includes(name.toLowerCase()));
-  if (category) result = result.filter(p => p.category.toLowerCase() === category.toLowerCase());
-  if (minPrice !== undefined && !Number.isNaN(Number(minPrice))) result = result.filter(p => p.price >= Number(minPrice));
-  if (maxPrice !== undefined && !Number.isNaN(Number(maxPrice))) result = result.filter(p => p.price <= Number(maxPrice));
-  res.json(result);
+const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.getSingleProduct = (req, res) => {
-  const id = Number(req.params.id);
-  const product = products.find(p => p.id === id);
-  if (!product) return res.status(404).json({ message: 'Product not found' });
-  res.json(product);
+const getSingleProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.createProduct = (req, res) => {
-  const { name, price, category } = req.body;
-  if (!name || price === undefined) return res.status(400).json({ message: 'name and price are required' });
-  const product = { id: nextId++, name, price: Number(price), category: category || 'general' };
-  products.push(product);
-  res.status(201).json(product);
+const createProduct = async (req, res) => {
+  try {
+    const product = await Product.create(req.body);
+    res.status(201).json(product);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 };
 
-exports.updateProduct = (req, res) => {
-  const id = Number(req.params.id);
-  const idx = products.findIndex(p => p.id === id);
-  if (idx === -1) return res.status(404).json({ message: 'Product not found' });
-  const { name, price, category } = req.body;
-  if (name !== undefined) products[idx].name = name;
-  if (price !== undefined) products[idx].price = Number(price);
-  if (category !== undefined) products[idx].category = category;
-  res.json(products[idx]);
+const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json(product);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 };
 
-exports.deleteProduct = (req, res) => {
-  const id = Number(req.params.id);
-  const idx = products.findIndex(p => p.id === id);
-  if (idx === -1) return res.status(404).json({ message: 'Product not found' });
-  const removed = products.splice(idx, 1)[0];
-  res.json({ message: 'Product deleted', product: removed });
+const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
+
 
